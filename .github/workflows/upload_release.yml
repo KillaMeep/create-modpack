@@ -1,4 +1,5 @@
 name: Upload Release
+permissions: write-all
 
 on:
   push:
