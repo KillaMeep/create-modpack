@@ -53,6 +53,7 @@ jobs:
       - name: Upload release asset for server
         id: upload-release-asset-server
         uses: actions/upload-release-asset@v1
+        if: github.ref == 'refs/heads/server'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
