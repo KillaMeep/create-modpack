@@ -11,12 +11,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Zip files
+      - name: Zip files for main
+        if: github.ref == 'refs/heads/main'
+        run: zip -r create_pack_mods_main.zip .
+        working-directory: .
+
+      - name: Zip files for server
+        if: github.ref == 'refs/heads/server'
         run: |
-          zip -r create_pack_mods_main.zip . -x '*.git*'
-          git checkout server
-          zip -r create_pack_mods_server.zip . -x '*.git*'
-          git checkout ${{ github.ref }}
+          zip -r create_pack_mods_server.zip . -x "*.zip"
+          rm -f create_pack_mods_server.zip create_pack_mods_main.zip
+          mv create_pack_mods_server.zip create_pack_mods_main.zip
+          zip -r -u create_pack_mods_main.zip . -x "*.zip"
         working-directory: .
 
       - name: Set Truncated SHA
@@ -37,8 +43,8 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload release asset for main
-        id: upload-release-asset-main
+      - name: Upload release asset
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,15 +52,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./create_pack_mods_main.zip
           asset_name: create_pack_mods_main.zip
-          asset_content_type: application/zip
-
-      - name: Upload release asset for server
-        id: upload-release-asset-server
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./create_pack_mods_server.zip
-          asset_name: create_pack_mods_server.zip
           asset_content_type: application/zip
