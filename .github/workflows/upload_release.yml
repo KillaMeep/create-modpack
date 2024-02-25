@@ -5,6 +5,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      TRUNCATED_SHA: ""
+      CREATE_RELEASE: ""
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -22,7 +25,6 @@ jobs:
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TRUNCATED_SHA: ${{ env.TRUNCATED_SHA }}
         with:
           tag_name: ${{ env.TRUNCATED_SHA }}
           release_name: Release ${{ env.TRUNCATED_SHA }}
@@ -30,6 +32,9 @@ jobs:
             Automatic release triggered by changes.
           draft: false
           prerelease: false
+
+      - name: Save release ID to env
+        run: echo "CREATE_RELEASE=${{ steps.create_release.outputs.id }}" >> $GITHUB_ENV
 
       - name: Upload release asset
         id: upload-release-asset
