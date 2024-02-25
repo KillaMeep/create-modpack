@@ -2,8 +2,6 @@ on:
   push:
     branches:
       - main
-      - server
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,18 +9,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Zip files for main
-        if: github.ref == 'refs/heads/main'
-        run: zip -r create_pack_mods_main.zip .
-        working-directory: .
-
-      - name: Zip files for server
-        if: github.ref == 'refs/heads/server'
-        run: |
-          zip -r create_pack_mods_server.zip . -x "*.zip"
-          rm -f create_pack_mods_server.zip create_pack_mods_main.zip
-          mv create_pack_mods_server.zip create_pack_mods_main.zip
-          zip -r -u create_pack_mods_main.zip . -x "*.zip"
+      - name: Zip files
+        run: zip -r create_pack_mods.zip .
         working-directory: .
 
       - name: Set Truncated SHA
@@ -50,6 +38,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./create_pack_mods_main.zip
-          asset_name: create_pack_mods_main.zip
-          asset_content_type: application/zip
+          asset_path: ./create_pack_mods.zip
+          asset_name: create_pack_mods.zip
