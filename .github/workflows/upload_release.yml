@@ -2,83 +2,43 @@ on:
   push:
     branches:
       - main
-      - server # Assuming server branch is separate
+      - server
 
 jobs:
-  build_main:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      
-      - name: Zip files for client
-        run: zip -r create_pack_mods_client.zip .
+
+      - name: Zip files
+        run: zip -r create_pack_mods_${{ github.ref_slug }}.zip .
         working-directory: .
 
-      - name: Set Truncated SHA for main
-        id: set_truncated_sha_main
-        run: echo "TRUNCATED_SHA_MAIN=$(echo ${{ github.sha }} | head -c 7)" >> $GITHUB_ENV
-      
-      - name: Create release for main
-        id: create_release_client
+      - name: Set Truncated SHA
+        id: set_truncated_sha
+        run: echo "TRUNCATED_SHA=$(echo ${{ github.sha }} | head -c 7)" >> $GITHUB_ENV
+
+      - name: Create release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TRUNCATED_SHA_MAIN: ${{ env.TRUNCATED_SHA_MAIN }}
+          TRUNCATED_SHA: ${{ env.TRUNCATED_SHA }}
         with:
-          tag_name: ${{ env.TRUNCATED_SHA_MAIN }}
-          release_name: Release ${{ env.TRUNCATED_SHA_MAIN }} (Main)
+          tag_name: ${{ env.TRUNCATED_SHA }}
+          release_name: Release ${{ env.TRUNCATED_SHA }}
           body: |
-            Automatic release triggered by changes in the main branch.
+            Automatic release triggered by changes.
           draft: false
           prerelease: false
 
-      - name: Upload release asset for main
-        id: upload-release-asset_main
+      - name: Upload release asset
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release_client.outputs.upload_url }} # Corrected step name
-          asset_path: ./create_pack_mods_client.zip
-          asset_name: create_pack_mods_client.zip
-          asset_content_type: application/zip
-
-  build_server:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      
-      - name: Zip files for server
-        run: zip -r create_pack_mods_server.zip .
-        working-directory: .
-
-      - name: Set Truncated SHA for server
-        id: set_truncated_sha_server
-        run: echo "TRUNCATED_SHA_SERVER=$(echo ${{ github.sha }} | head -c 7)" >> $GITHUB_ENV
-      
-      - name: Create release for server
-        id: create_release_server
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TRUNCATED_SHA_SERVER: ${{ env.TRUNCATED_SHA_SERVER }}
-        with:
-          tag_name: ${{ env.TRUNCATED_SHA_SERVER }}
-          release_name: Release ${{ env.TRUNCATED_SHA_SERVER }} (Server)
-          body: |
-            Automatic release triggered by changes in the server branch.
-          draft: false
-          prerelease: false
-
-      - name: Upload release asset for server
-        id: upload-release-asset_server
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release_server.outputs.upload_url }}
-          asset_path: ./create_pack_mods_server.zip
-          asset_name: create_pack_mods_server.zip
-          asset_content_type: application/zip
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./create_pack_mods_${{ github.ref_slug }}.zip
+          asset_name: create_pack_mods_${{ github.ref_slug }}.zip
