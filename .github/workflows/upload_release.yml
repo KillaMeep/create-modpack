@@ -1,7 +1,8 @@
 on:
   push:
-    paths:
-      - '**' # Trigger on any path changes
+    branches:
+      - main
+      - server
 
 jobs:
   build:
@@ -9,15 +10,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      
-      - name: Zip files
-        run: zip -r create_pack_mods.zip .
+
+      - name: Zip files for main
+        if: github.ref == 'refs/heads/main'
+        run: zip -r create_pack_mods_main.zip .
+        working-directory: .
+
+      - name: Zip files for server
+        if: github.ref == 'refs/heads/server'
+        run: zip -r create_pack_mods_server.zip .
         working-directory: .
 
       - name: Set Truncated SHA
         id: set_truncated_sha
         run: echo "TRUNCATED_SHA=$(echo ${{ github.sha }} | head -c 7)" >> $GITHUB_ENV
-      
+
       - name: Create release
         id: create_release
         uses: actions/create-release@v1
@@ -32,13 +39,25 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload release asset
-        id: upload-release-asset
+      - name: Upload release asset for main
+        id: upload-release-asset-main
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./create_pack_mods.zip
-          asset_name: create_pack_mods.zip
+          asset_path: ./create_pack_mods_main.zip
+          asset_name: create_pack_mods_main.zip
+          asset_content_type: application/zip
+
+      - name: Upload release asset for server
+        id: upload-release-asset-server
+        uses: actions/upload-release-asset@v1
+        if: github.ref == 'refs/heads/server'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./create_pack_mods_server.zip
+          asset_name: create_pack_mods_server.zip
           asset_content_type: application/zip
