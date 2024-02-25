@@ -11,14 +11,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Zip files for main
-        if: github.ref == 'refs/heads/main'
-        run: zip -r create_pack_mods_main.zip .
-        working-directory: .
-
-      - name: Zip files for server
-        if: github.ref == 'refs/heads/server'
-        run: zip -r create_pack_mods_server.zip .
+      - name: Zip files
+        run: |
+          zip -r create_pack_mods_main.zip . -x '*.git*'
+          git checkout server
+          zip -r create_pack_mods_server.zip . -x '*.git*'
+          git checkout ${{ github.ref }}
         working-directory: .
 
       - name: Set Truncated SHA
@@ -53,7 +51,6 @@ jobs:
       - name: Upload release asset for server
         id: upload-release-asset-server
         uses: actions/upload-release-asset@v1
-        if: github.ref == 'refs/heads/server'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
