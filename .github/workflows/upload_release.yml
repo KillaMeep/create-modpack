@@ -30,6 +30,8 @@ jobs:
             Automatic release triggered by changes.
           draft: false
           prerelease: false
+        env:
+          CREATE_RELEASE: ${{ steps.create_release.outputs.id }}
 
       - name: Upload release asset
         id: upload-release-asset
